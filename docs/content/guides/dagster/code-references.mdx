@@ -1,0 +1,115 @@
+---
+title: Code References in Dagster | Dagster Docs
+---
+
+# Linking to code in Dagster with Code References
+
+<Note>
+  This feature is considered <strong>experimental</strong> and is under active
+  development. This guide will be updated as we roll out new features.
+</Note>
+
+This guide explains how to use Code Reference metadata on your Dagster assets to link from the Dagster UI to the source code that produced the asset. In the local development environment, you can use this feature to navigate directly to the code backing an asset in your editor, and in the Dagster Cloud UI, you can link to the source code in your source control repository to see the full history of changes.
+
+---
+
+## Prerequisites
+
+To complete the steps in this guide, you'll need:
+
+- A Dagster repository with assets that you want to link to code
+- Dagster version `1.7.6` or newer
+
+---
+
+## Referencing source code in your assets
+
+### Automatically attaching code references to asset definitions
+
+To automatically attach code references to the asset's function definition, you can use the `dagster._core.definitions.metadata.with_source_code_references` utility. Any asset definitions passed to the utility will have their source file attached as metadata.
+
+```python file=/guides/dagster/code_references/with_source_code_references.py
+from dagster import Definitions, asset
+from dagster._core.definitions.metadata import with_source_code_references
+
+
+@asset
+def my_asset(): ...
+
+
+@asset
+def another_asset(): ...
+
+
+defs = Definitions(
+    assets=with_source_code_references(
+        [
+            my_asset,
+            another_asset,
+        ]
+    )
+)
+```
+
+A link to source will then be visible in the Asset Catalog view in the Dagster UI:
+
+<center>
+  <Image
+    alt="Asset catalog view showing link to with_source_code_references.py"
+    src="/images/guides/code-references/with_source_code_references.png"
+    width={1590}
+    height={326}
+  />
+</center>
+
+### Manually attaching code references to asset definitions
+
+In some cases, you may want to manually attach code references to your asset definitions. For example, an asset whose definition is spread across multiple Python sources files or is partially defined in YAML may have a more complex source structure.
+
+To manually attach code references to an asset definition, you can manually attach an instance of `dagster._core.definitions.metadata.CodeReferencesMetadataSet`. You can then choose to augment these manual references with `with_source_code_references`:
+
+```python file=/guides/dagster/code_references/manual_references.py
+import os
+
+from dagster import Definitions, asset
+from dagster._core.definitions.metadata import (
+    CodeReferencesMetadataSet,
+    CodeReferencesMetadataValue,
+    LocalFileCodeReference,
+    with_source_code_references,
+)
+
+
+@asset(
+    metadata={
+        **CodeReferencesMetadataSet(
+            code_references=CodeReferencesMetadataValue(
+                code_references=[
+                    LocalFileCodeReference(
+                        file_path=os.path.join(
+                            os.path.dirname(__file__), "source.yaml"
+                        ),
+                        line_number=1,
+                        label="Model YAML",
+                    )
+                ]
+            )
+        )
+    }
+)
+def my_asset_modeled_in_yaml(): ...
+
+
+defs = Definitions(assets=with_source_code_references([my_asset_modeled_in_yaml]))
+```
+
+Each of the code references will be visible in the Asset Catalog view in the Dagster UI:
+
+<center>
+  <Image
+    alt="Asset catalog view showing link to multiple files"
+    src="/images/guides/code-references/manual_references.png"
+    width={1592}
+    height={389}
+  />
+</center>
