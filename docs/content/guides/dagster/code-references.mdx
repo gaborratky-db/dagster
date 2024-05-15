@@ -53,7 +53,7 @@ defs = Definitions(
 )
 ```
 
-A link to source will then be visible in the Asset Catalog view in the Dagster UI:
+A link to the asset's source in `with_source_code_references.py` will then be visible in the Asset Catalog view in the Dagster UI:
 
 <center>
   <Image
@@ -107,7 +107,7 @@ def my_asset_modeled_in_yaml(): ...
 defs = Definitions(assets=with_source_code_references([my_asset_modeled_in_yaml]))
 ```
 
-Each of the code references will be visible in the asset details view in the Dagster UI:
+Each of the code references to `manual_references.py` will be visible in the asset details view in the Dagster UI:
 
 <center>
   <Image
