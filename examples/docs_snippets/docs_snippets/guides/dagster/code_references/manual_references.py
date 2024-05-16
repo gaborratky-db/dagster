@@ -2,7 +2,6 @@ import os
 
 from dagster import Definitions, asset
 from dagster._core.definitions.metadata import (
-    CodeReferencesMetadataSet,
     CodeReferencesMetadataValue,
     LocalFileCodeReference,
     with_source_code_references,
@@ -11,18 +10,14 @@ from dagster._core.definitions.metadata import (
 
 @asset(
     metadata={
-        **CodeReferencesMetadataSet(
-            code_references=CodeReferencesMetadataValue(
-                code_references=[
-                    LocalFileCodeReference(
-                        file_path=os.path.join(
-                            os.path.dirname(__file__), "source.yaml"
-                        ),
-                        line_number=1,
-                        label="Model YAML",
-                    )
-                ]
-            )
+        "dagster/code_references": CodeReferencesMetadataValue(
+            code_references=[
+                LocalFileCodeReference(
+                    file_path=os.path.join(os.path.dirname(__file__), "source.yaml"),
+                    line_number=1,
+                    label="Model YAML",
+                )
+            ]
         )
     }
 )

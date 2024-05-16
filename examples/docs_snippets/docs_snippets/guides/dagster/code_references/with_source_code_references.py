@@ -10,11 +10,4 @@ def my_asset(): ...
 def another_asset(): ...
 
 
-defs = Definitions(
-    assets=with_source_code_references(
-        [
-            my_asset,
-            another_asset,
-        ]
-    )
-)
+defs = Definitions(assets=with_source_code_references([my_asset, another_asset]))
