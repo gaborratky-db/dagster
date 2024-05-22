@@ -13,7 +13,11 @@ P = ParamSpec("P")
 
 NO_ARGS_HASH_VALUE = 0
 
+# pydantic private fields require _ prefix
 CACHED_METHOD_CACHE_FIELD = "_cached_method_cache__internal__"
+
+# namedtuple does not allow _ prefix
+NT_CACHED_METHOD_CACHE_FIELD = "cached_method_cache__internal__"
 
 
 def cached_method(method: Callable[Concatenate[S, P], T]) -> Callable[Concatenate[S, P], T]:
@@ -65,10 +69,14 @@ def cached_method(method: Callable[Concatenate[S, P], T]) -> Callable[Concatenat
 
     @wraps(method)
     def _cached_method_wrapper(self: S, *args: P.args, **kwargs: P.kwargs) -> T:
-        if not hasattr(self, CACHED_METHOD_CACHE_FIELD):
-            setattr(self, CACHED_METHOD_CACHE_FIELD, {})
+        if hasattr(self, NT_CACHED_METHOD_CACHE_FIELD):
+            cache_dict = getattr(self, NT_CACHED_METHOD_CACHE_FIELD)
+        else:
+            if not hasattr(self, CACHED_METHOD_CACHE_FIELD):
+                setattr(self, CACHED_METHOD_CACHE_FIELD, {})
 
-        cache_dict = getattr(self, CACHED_METHOD_CACHE_FIELD)
+            cache_dict = getattr(self, CACHED_METHOD_CACHE_FIELD)
+
         if method.__name__ not in cache_dict:
             cache_dict[method.__name__] = {}
 
