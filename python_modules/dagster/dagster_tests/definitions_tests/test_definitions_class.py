@@ -1,4 +1,6 @@
 import re
+from datetime import datetime
+from typing import Any, Optional, Sequence
 
 import pytest
 from dagster import (
@@ -35,6 +37,7 @@ from dagster._core.definitions.executor_definition import executor
 from dagster._core.definitions.external_asset import create_external_asset_from_source_asset
 from dagster._core.definitions.job_definition import JobDefinition
 from dagster._core.definitions.logger_definition import logger
+from dagster._core.definitions.partition import PartitionsDefinition
 from dagster._core.definitions.repository_definition import (
     PendingRepositoryDefinition,
     RepositoryDefinition,
@@ -854,3 +857,23 @@ def test_executor_conflict_on_merge():
         DagsterInvariantViolationError, match="Definitions objects 0 and 1 both have an executor"
     ):
         Definitions.merge(defs1, defs2)
+
+
+def test_invalid_partitions_subclass():
+    class CustomPartitionsDefinition(PartitionsDefinition):
+        def get_partition_keys(
+            self,
+            current_time: Optional[datetime] = None,
+            dynamic_partitions_store: Any = None,
+        ) -> Sequence[str]:
+            return ["a", "b", "c"]
+
+    @asset(partitions_def=CustomPartitionsDefinition())
+    def asset1():
+        pass
+
+    with pytest.raises(
+        DagsterInvalidDefinitionError,
+        match="Invalid PartitionsDefinition",
+    ):
+        Definitions(assets=[asset1])

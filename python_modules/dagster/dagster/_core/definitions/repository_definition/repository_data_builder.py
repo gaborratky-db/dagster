@@ -36,6 +36,12 @@ from dagster._core.definitions.executor_definition import ExecutorDefinition
 from dagster._core.definitions.graph_definition import GraphDefinition
 from dagster._core.definitions.job_definition import JobDefinition
 from dagster._core.definitions.logger_definition import LoggerDefinition
+from dagster._core.definitions.multi_dimensional_partitions import MultiPartitionsDefinition
+from dagster._core.definitions.partition import (
+    DynamicPartitionsDefinition,
+    PartitionsDefinition,
+    StaticPartitionsDefinition,
+)
 from dagster._core.definitions.partitioned_schedule import (
     UnresolvedPartitionedAssetScheduleDefinition,
 )
@@ -43,6 +49,7 @@ from dagster._core.definitions.resource_definition import ResourceDefinition
 from dagster._core.definitions.schedule_definition import ScheduleDefinition
 from dagster._core.definitions.sensor_definition import SensorDefinition
 from dagster._core.definitions.source_asset import SourceAsset
+from dagster._core.definitions.time_window_partitions import TimeWindowPartitionsDefinition
 from dagster._core.definitions.unresolved_asset_job_definition import UnresolvedAssetJobDefinition
 from dagster._core.errors import DagsterInvalidDefinitionError
 
@@ -52,6 +59,16 @@ from .valid_definitions import VALID_REPOSITORY_DATA_DICT_KEYS, RepositoryListDe
 if TYPE_CHECKING:
     from dagster._core.definitions.asset_check_spec import AssetCheckKey
     from dagster._core.definitions.events import AssetKey
+
+# We throw an error if the user attaches an instance of a custom `PartitionsDefinition` subclass to
+# a definition-- we can't support custom PartitionsDefinition subclasses due to us needing to load
+# them in the host process.
+VALID_PARTITIONS_DEFINITION_CLASSES = (
+    StaticPartitionsDefinition,
+    DynamicPartitionsDefinition,
+    TimeWindowPartitionsDefinition,
+    MultiPartitionsDefinition,
+)
 
 
 def _find_env_vars(config_entry: Any) -> Set[str]:
@@ -179,6 +196,8 @@ def build_caching_repository_data_from_list(
                     f"Attempted to provide job called {definition.name} to repository, which "
                     "is a reserved name. Please rename the job."
                 )
+            if definition.partitions_def is not None:
+                _validate_partitions_definition(definition.partitions_def)
             jobs[definition.name] = definition
         elif isinstance(definition, SensorDefinition):
             if definition.name in schedule_and_sensor_names:
@@ -218,6 +237,8 @@ def build_caching_repository_data_from_list(
                     f"Duplicate definition found for unresolved job '{definition.name}'"
                 )
             # we can only resolve these once we have all assets
+            if definition.partitions_def is not None:
+                _validate_partitions_definition(definition.partitions_def)
             unresolved_jobs[definition.name] = definition
         elif isinstance(definition, AssetChecksDefinition):
             for key in definition.check_keys:
@@ -232,6 +253,8 @@ def build_caching_repository_data_from_list(
             for key in definition.check_keys:
                 if key in asset_check_keys:
                     raise DagsterInvalidDefinitionError(f"Duplicate asset check key: {key}")
+            if definition.partitions_def is not None:
+                _validate_partitions_definition(definition.partitions_def)
 
             asset_keys.update(definition.keys)
             asset_check_keys.update(definition.check_keys)
@@ -477,6 +500,16 @@ def _validate_auto_materialize_sensors(
                     )
                 else:
                     sensor_names_by_asset_key[asset_key] = sensor.name
+
+
+def _validate_partitions_definition(partitions_def: PartitionsDefinition) -> None:
+    if not isinstance(partitions_def, VALID_PARTITIONS_DEFINITION_CLASSES):
+        valid_names = ", ".join([cls.__name__ for cls in VALID_PARTITIONS_DEFINITION_CLASSES])
+        raise DagsterInvalidDefinitionError(
+            "Invalid PartitionsDefinition detected. All passed-in PartitionsDefinition"
+            f" objects must be an instance of one of ({valid_names})."
+            f" Found instance of {type(partitions_def).__name__}",
+        )
 
 
 def _get_error_msg_for_target_conflict(targeter, target_type, target_name, dupe_target_type):
