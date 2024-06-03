@@ -34,6 +34,7 @@ from ..input import In
 from .asset_decorator import make_asset_deps
 from .assets_definition_factory import (
     build_asset_ins,
+    compute_required_resource_keys,
     get_function_params_without_context_or_config_or_resources,
 )
 from .op_decorator import _Op
@@ -212,18 +213,14 @@ def asset_check(
             metadata=metadata,
         )
 
-        arg_resource_keys = {arg.name for arg in get_resource_args(fn)}
+        resource_defs_for_execution = wrap_resources_for_execution(resource_defs)
 
-        check.param_invariant(
-            len(required_resource_keys or []) == 0 or len(arg_resource_keys) == 0,
-            "Cannot specify resource requirements in both @asset_check decorator and as arguments"
-            " to the decorated function",
+        op_required_resource_keys = compute_required_resource_keys(
+            required_resource_keys or set(),
+            resource_defs_for_execution,
+            fn=fn,
+            decorator="@asset_check",
         )
-
-        resource_defs_keys = set(resource_defs.keys() if resource_defs else [])
-        decorator_resource_keys = (required_resource_keys or set()) | resource_defs_keys
-
-        op_required_resource_keys = decorator_resource_keys - arg_resource_keys
 
         out = Out(dagster_type=None)
 
@@ -248,7 +245,7 @@ def asset_check(
                 for asset_key, input_tuple in input_tuples_by_asset_key.items()
             },
             node_def=op_def,
-            resource_defs=wrap_resources_for_execution(resource_defs),
+            resource_defs=resource_defs_for_execution,
             check_specs_by_output_name={op_def.output_defs[0].name: spec},
             can_subset=False,
         )
