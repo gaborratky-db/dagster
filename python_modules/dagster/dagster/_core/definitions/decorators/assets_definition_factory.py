@@ -227,6 +227,7 @@ class AssetsDefinitionBuilderArgs(NamedTuple):
     assets_def_resource_defs: Mapping[str, ResourceDefinition]
     op_def_resource_defs: Mapping[str, ResourceDefinition]
     backfill_policy: Optional[BackfillPolicy]
+    decorator: str
 
 
 class AssetsDefinitionBuilder:
@@ -511,7 +512,7 @@ class AssetsDefinitionBuilder:
                 self.args.required_resource_keys,
                 self.args.op_def_resource_defs,
                 self.fn,
-                "@multi_asset",
+                self.args.decorator,
             ),
             tags={
                 **({"kind": self.args.compute_kind} if self.args.compute_kind else {}),
