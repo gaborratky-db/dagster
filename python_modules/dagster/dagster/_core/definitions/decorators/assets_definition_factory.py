@@ -188,17 +188,18 @@ def make_keys_by_output_name(
 
 
 def compute_required_resource_keys(
-    required_resource_keys: Set[str],
+    required_resource_keys: AbstractSet[str],
     resource_defs: Mapping[str, ResourceDefinition],
     fn: Callable[..., Any],
-) -> Set[str]:
-    bare_required_resource_keys = required_resource_keys.copy()
+    decorator: str,
+) -> AbstractSet[str]:
+    bare_required_resource_keys = set(required_resource_keys)
     resource_defs_keys = set(resource_defs.keys())
     required_resource_keys = bare_required_resource_keys | resource_defs_keys
     arg_resource_keys = {arg.name for arg in get_resource_args(fn)}
     check.param_invariant(
         len(bare_required_resource_keys or []) == 0 or len(arg_resource_keys) == 0,
-        "Cannot specify resource requirements in both @multi_asset decorator and as"
+        f"Cannot specify resource requirements in both {decorator} decorator and as"
         " arguments to the decorated function",
     )
     return required_resource_keys - arg_resource_keys
@@ -222,7 +223,7 @@ class AssetsDefinitionBuilderArgs(NamedTuple):
     config_schema: Optional[UserConfigSchema]
     retry_policy: Optional[RetryPolicy]
     compute_kind: Optional[str]
-    required_resource_keys: Set[str]
+    required_resource_keys: AbstractSet[str]
     assets_def_resource_defs: Mapping[str, ResourceDefinition]
     op_def_resource_defs: Mapping[str, ResourceDefinition]
     backfill_policy: Optional[BackfillPolicy]
@@ -507,7 +508,10 @@ class AssetsDefinitionBuilder:
             ins=self.asset_ins_by_input_names,
             out=self.combined_outs_by_output_name,
             required_resource_keys=compute_required_resource_keys(
-                self.args.required_resource_keys, self.args.op_def_resource_defs, self.fn
+                self.args.required_resource_keys,
+                self.args.op_def_resource_defs,
+                self.fn,
+                "@multi_asset",
             ),
             tags={
                 **({"kind": self.args.compute_kind} if self.args.compute_kind else {}),
