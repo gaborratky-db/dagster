@@ -296,6 +296,10 @@
                 "path": "/concepts/metadata-tags/asset-metadata"
               },
               {
+                "title": "Table metadata",
+                "path": "/concepts/metadata-tags/asset-metadata/table-metadata"
+              },
+              {
                 "title": "Column-level lineage",
                 "path": "/concepts/metadata-tags/asset-metadata/column-level-lineage"
               },

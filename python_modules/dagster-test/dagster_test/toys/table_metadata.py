@@ -40,6 +40,29 @@ table_metadata = MetadataValue.table(
 )
 
 
-@asset(metadata={"resident_info": table_metadata})
+@asset(
+    metadata={
+        "dagster/column_schema": TableSchema(
+            columns=[
+                TableColumn("name", "string", description="The name of the person"),
+                TableColumn(
+                    "age",
+                    "int",
+                    description="The age of the person",
+                ),
+                TableColumn(
+                    "height",
+                    "float",
+                    description="The height of the person in centimeters",
+                ),
+                TableColumn(
+                    "is_resident",
+                    "bool",
+                    description="Whether the person is a resident of the city",
+                ),
+            ]
+        ),
+    }
+)
 def alpha():
     return 1
