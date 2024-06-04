@@ -951,7 +951,9 @@ class AssetsDefinition(ResourceAddable, RequiresResources, IHasInternalInit):
 
     @property
     def backfill_policy(self) -> Optional[BackfillPolicy]:
-        return self._backfill_policy
+        return self._backfill_policy or (
+            BackfillPolicy.default() if self.is_materializable else None
+        )
 
     @public
     @property

@@ -74,6 +74,10 @@ class BackfillPolicy(
             max_partitions_per_run=check.int_param(max_partitions_per_run, "max_partitions_per_run")
         )
 
+    @staticmethod
+    def default() -> "BackfillPolicy":
+        return BackfillPolicy.multi_run(1)
+
     @property
     def policy_type(self) -> BackfillPolicyType:
         if self.max_partitions_per_run:

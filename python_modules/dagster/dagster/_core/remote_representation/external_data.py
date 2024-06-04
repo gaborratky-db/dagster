@@ -1423,6 +1423,10 @@ class ExternalAssetNode(
             # job, and no source assets could be part of any job
             is_source = len(job_names or []) == 0
 
+        # backcompat logic to assign default BackfillPolicy for materializable assets
+        if backfill_policy is None and execution_type == AssetExecutionType.MATERIALIZATION:
+            backfill_policy = BackfillPolicy.default()
+
         return super(ExternalAssetNode, cls).__new__(
             cls,
             asset_key=check.inst_param(asset_key, "asset_key", AssetKey),

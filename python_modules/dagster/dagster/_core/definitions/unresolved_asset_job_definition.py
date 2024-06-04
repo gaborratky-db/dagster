@@ -9,6 +9,7 @@ from dagster._core.definitions.asset_job import (
     get_asset_graph_for_job,
 )
 from dagster._core.definitions.asset_selection import AssetSelection
+from dagster._core.definitions.backfill_policy import BackfillPolicy
 from dagster._core.definitions.executor_definition import ExecutorDefinition
 from dagster._core.definitions.hook_definition import HookDefinition
 from dagster._core.definitions.partition import PartitionsDefinition
@@ -185,7 +186,11 @@ class UnresolvedAssetJobDefinition(
 
         # Require that all assets in the job have the same backfill policy
         executable_nodes = {job_asset_graph.get(k) for k in job_asset_graph.executable_asset_keys}
-        backfill_policies = {n.backfill_policy for n in executable_nodes if n.is_partitioned}
+        backfill_policies = {
+            check.not_none(n.backfill_policy, f"Unexpected null backfill policy for {n.key}")
+            for n in executable_nodes
+            if n.is_partitioned
+        }
         if len(backfill_policies) > 1:
             raise DagsterInvalidDefinitionError(
                 f"Asset job {self.name} materializes assets with varying BackfillPolicies. All assets"
@@ -196,11 +201,10 @@ class UnresolvedAssetJobDefinition(
         # materializes anything other than a single partition per run. This is because
         # PartitionedConfig is a function that maps single partition keys to run config, so it's
         # behavior is undefined for multiple-partition runs.
-        backfill_policy = next(iter(backfill_policies), None)
+        backfill_policy = next(iter(backfill_policies), BackfillPolicy.default())
         if (
-            backfill_policy
+            isinstance(self.config, PartitionedConfig)
             and backfill_policy.max_partitions_per_run != 1
-            and isinstance(self.config, PartitionedConfig)
         ):
             raise DagsterInvalidDefinitionError(
                 f"Asset job {self.name} materializes an asset with a BackfillPolicy targeting multiple partitions per run,"
