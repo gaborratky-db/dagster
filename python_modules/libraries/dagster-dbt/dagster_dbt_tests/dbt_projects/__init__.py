@@ -17,3 +17,5 @@ test_duplicate_source_asset_key_path = projects_path.joinpath(
 test_exceptions_path = projects_path.joinpath("test_dagster_exceptions")
 test_meta_config_path = projects_path.joinpath("test_dagster_meta_config")
 test_metadata_path = projects_path.joinpath("test_dagster_metadata")
+test_last_update_freshness_path = projects_path.joinpath("test_dagster_last_update_freshness")
+test_time_partition_freshness_path = projects_path.joinpath("test_dagster_time_partition_freshness")
