@@ -39,7 +39,7 @@ Below are two examples of how to attach column schema metadata to an asset, one 
 from dagster import AssetKey, MaterializeResult, TableColumn, TableSchema, asset
 
 
-# Here, we know the schema of the asset, so we can attach it to the asset decorator
+# Here, we know the column schema of the asset at the time we're defining it, so we can attach it to the asset decorator
 @asset(
     deps=[AssetKey("source_bar"), AssetKey("source_baz")],
     metadata={
