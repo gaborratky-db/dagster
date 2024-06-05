@@ -18,6 +18,12 @@ import {
   SearchResultType,
   isAssetFilterSearchResultType,
 } from './types';
+import {
+  AssetComputeKindTag,
+  AssetStorageKindTag,
+  isCanonicalComputeKindTag,
+  isCanonicalStorageKindTag,
+} from '../graph/KindTags';
 
 const iconForType = (type: SearchResultType | AssetFilterSearchResultType): IconName => {
   switch (type) {
@@ -142,6 +148,8 @@ export const SearchResultItem = React.memo(({isHighlight, onClickResult, result}
   );
 
   const labelComponents = buildSearchLabel(result);
+  const computeKindTag = item.tags?.find(isCanonicalComputeKindTag);
+  const storageKindTag = item.tags?.find(isCanonicalStorageKindTag);
 
   return (
     <Item isHighlight={isHighlight} ref={element}>
@@ -152,7 +160,7 @@ export const SearchResultItem = React.memo(({isHighlight, onClickResult, result}
             $interactive={false}
             $textColor={Colors.textDefault()}
           >
-            <Box flex={{gap: 4}}>
+            <Box flex={{direction: 'row', gap: 4, alignItems: 'center'}}>
               <Icon
                 name={iconForType(item.type)}
                 color={isHighlight ? Colors.textDefault() : Colors.textLight()}
@@ -161,6 +169,22 @@ export const SearchResultItem = React.memo(({isHighlight, onClickResult, result}
                 <Caption>{assetFilterPrefixString(item.type)}:</Caption>
               )}
               <div>{labelComponents.map((component) => component)}</div>
+              {item.type == SearchResultType.Asset && computeKindTag && (
+                <AssetComputeKindTag
+                  reduceColor
+                  reduceText
+                  definition={{computeKind: computeKindTag.value}}
+                  style={{position: 'relative', margin: 0}}
+                />
+              )}
+              {item.type == SearchResultType.Asset && storageKindTag && (
+                <AssetStorageKindTag
+                  reduceColor
+                  reduceText
+                  storageKind={storageKindTag.value}
+                  style={{position: 'relative', margin: 0}}
+                />
+              )}
               {item.repoPath && <Caption>in {item.repoPath}</Caption>}
             </Box>
           </StyledTag>

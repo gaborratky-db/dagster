@@ -1,4 +1,5 @@
 import Fuse from 'fuse.js';
+import {DefinitionTag} from '../graphql/types';
 
 export enum SearchResultType {
   AssetGroup,
@@ -43,7 +44,7 @@ export type SearchResult = {
   description: string;
   href: string;
   type: SearchResultType | AssetFilterSearchResultType;
-  tags?: string;
+  tags?: DefinitionTag[];
   numResults?: number;
   repoPath?: string;
 };
