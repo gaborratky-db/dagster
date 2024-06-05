@@ -1,6 +1,7 @@
 from dagster import AssetKey, MaterializeResult, TableColumn, TableSchema, asset
 
 
+# Definition metadata
 # Here, we know the schema of the asset, so we can attach it to the asset decorator
 @asset(
     deps=[AssetKey("source_bar"), AssetKey("source_baz")],
@@ -24,6 +25,7 @@ from dagster import AssetKey, MaterializeResult, TableColumn, TableSchema, asset
 def my_asset(): ...
 
 
+# Materialization metadata
 # Here, the schema isn't known until runtime
 @asset(deps=[AssetKey("source_bar"), AssetKey("source_baz")])
 def my_other_asset():

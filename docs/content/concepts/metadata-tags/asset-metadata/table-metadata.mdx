@@ -11,7 +11,7 @@ Dagster supports attaching different types of table metadata to assets, includin
 
 - [**Column schema**](#attaching-column-schema), which describes the structure of the table, including column names and types
 - [**Row count**](#attaching-row-count), which describes the number of rows in a materialized table
-- [**Column-level lineage**](#attaching-column-level-lineage), which  describes how a column is created and used by other assets
+- [**Column-level lineage**](#attaching-column-level-lineage), which describes how a column is created and used by other assets
 
 ---
 
@@ -39,7 +39,8 @@ Below are two examples of how to attach column schema metadata to an asset, one 
 from dagster import AssetKey, MaterializeResult, TableColumn, TableSchema, asset
 
 
-# Here, we know the column schema of the asset at the time we're defining it, so we can attach it to the asset decorator
+# Definition metadata
+# Here, we know the schema of the asset, so we can attach it to the asset decorator
 @asset(
     deps=[AssetKey("source_bar"), AssetKey("source_baz")],
     metadata={
@@ -62,6 +63,7 @@ from dagster import AssetKey, MaterializeResult, TableColumn, TableSchema, asset
 def my_asset(): ...
 
 
+# Materialization metadata
 # Here, the schema isn't known until runtime
 @asset(deps=[AssetKey("source_bar"), AssetKey("source_baz")])
 def my_other_asset():
@@ -97,9 +99,7 @@ height={559}
 
 You may attach row count metadata to Dagster assets as [materialization metadata](/concepts/metadata-tags/asset-metadata#attaching-materialization-metadata) to provide additional context about the number of rows in a materialized table. Dagster will let you track changes in the row count over time, and you can use this information to monitor data quality.
 
-To attach row count metadata to an asset, you will need to attach a numerical value to the `dagster/row_count` key in the metadata parameter of the <PyObject object="MaterializeResult" /> object returned by the asset function.
-
-Below is an example of how to attach row count metadata to an asset:
+To attach row count metadata to an asset, you will need to attach a numerical value to the `dagster/row_count` key in the metadata parameter of the <PyObject object="MaterializeResult" /> object returned by the asset function. For example:
 
 ```python file=/concepts/metadata-tags/asset_row_count.py
 import pandas as pd
