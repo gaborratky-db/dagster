@@ -31,7 +31,7 @@ You may attach column schema metadata to Dagster assets either as [definition me
 To attach schema metadata to an asset, you will need to:
 
 1. Construct a <PyObject object="TableSchema"/> object with <PyObject object="TableColumn"  /> entries describing each column in the table
-2. Attach the `TableSchema` object to the asset as part of the `metadata` parameter under the `dagster/column_schema` key. This can be attached to your asset definition, or to the <PyObject object="MaterializeResult" /> object returned by the asset function
+2. Attach the `TableSchema` object to the asset as part of the `metadata` parameter under the `dagster/column_schema` key. This can be attached to your asset definition, or to the <PyObject object="MaterializeResult" /> object returned by the asset function.
 
 Below are two examples of how to attach column schema metadata to an asset, one as definition metadata and one as materialization metadata:
 
